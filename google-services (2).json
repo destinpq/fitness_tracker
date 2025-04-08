@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "593038958929",
+    "project_id": "fitness-tracker-6d5e8",
+    "storage_bucket": "fitness-tracker-6d5e8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:593038958929:android:db2bf9a3b3882dbf657370",
+        "android_client_info": {
+          "package_name": "com.trackme.trackme"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAshNHlHIPI0iTiNF9Qju-zpH5QN3oRqSA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

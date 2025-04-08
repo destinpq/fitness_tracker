@@ -1,0 +1,72 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isTrainer() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'trainer';
+    }
+    
+    function isTrainee() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'trainee';
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAssignedTrainer(workoutId) {
+      return isTrainer() && 
+        get(/databases/$(database)/documents/workouts/$(workoutId)).data.trainerId == request.auth.uid;
+    }
+
+    // User profiles
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isOwner(userId);
+      allow update: if isOwner(userId) || 
+        (isTrainer() && resource.data.trainerId == request.auth.uid);
+      allow delete: if isOwner(userId);
+    }
+    
+    // Workouts
+    match /workouts/{workoutId} {
+      allow read: if isAuthenticated() && 
+        (isOwner(resource.data.userId) || isAssignedTrainer(workoutId));
+      allow create: if isTrainer();
+      allow update: if isAssignedTrainer(workoutId) || 
+        (isTrainee() && resource.data.userId == request.auth.uid);
+      allow delete: if isAssignedTrainer(workoutId);
+    }
+    
+    // Exercise templates
+    match /exercises/{exerciseId} {
+      allow read: if isAuthenticated();
+      allow write: if isTrainer();
+    }
+    
+    // Workout sessions
+    match /sessions/{sessionId} {
+      allow read: if isAuthenticated() && 
+        (isOwner(resource.data.userId) || isAssignedTrainer(sessionId));
+      allow create: if isAuthenticated();
+      allow update: if isOwner(resource.data.userId) || 
+        isAssignedTrainer(sessionId);
+      allow delete: if isAssignedTrainer(sessionId);
+    }
+    
+    // Analytics
+    match /analytics/{analyticsId} {
+      allow read: if isAuthenticated() && 
+        (isOwner(resource.data.userId) || 
+         (isTrainer() && resource.data.trainerId == request.auth.uid));
+      allow create, update: if isAuthenticated();
+      allow delete: if isTrainer() && resource.data.trainerId == request.auth.uid;
+    }
+  }
+} 
